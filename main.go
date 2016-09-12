@@ -24,7 +24,7 @@ var (
 	config  = flag.String("config", "sparkle.json", "path of sparkle.json")
 	setup   = flag.Bool("setup", false, "initialize config file")
 	appcast = flag.String("appcast", "appcast.xml", "path of appcast.xml")
-	output  = flag.String("output", "latest.zip", "path of ziped file")
+	output  = flag.String("output", "latest.dmg", "path of output")
 )
 
 const tmpl = `<?xml version="1.0" encoding="utf-8"?>
@@ -124,23 +124,34 @@ func _main() error {
 		return fmt.Errorf("description seems to be empty")
 	}
 
-	ziped, err := zipRecursive(*app)
+	var tmp *os.File
+
+	switch ext := filepath.Ext(*output); ext {
+	case ".zip":
+		tmp, err = zipRecursive(*app)
+	case ".dmg":
+		tmp, err = _dmg(*app, i.BundleName)
+	default:
+		return fmt.Errorf("output path should be .zip or .dmg. but got %s", ext)
+	}
+
 	if err != nil {
 		return err
 	}
-	defer os.Remove(ziped.Name())
 
-	sig, err := sign(ziped.Name(), c.PrivateKey)
+	defer os.Remove(tmp.Name())
+
+	sig, err := sign(tmp.Name(), c.PrivateKey)
 	if err != nil {
 		return err
 	}
 
-	stat, err := ziped.Stat()
+	stat, err := tmp.Stat()
 	if err != nil {
 		return err
 	}
 
-	if err := os.Rename(ziped.Name(), *output); err != nil {
+	if err := os.Rename(tmp.Name(), *output); err != nil {
 		return err
 	}
 
