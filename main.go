@@ -161,7 +161,12 @@ func _main() error {
 		return err
 	}
 
-	base, err := url.Parse(c.OutputBaseLink)
+	var outputBaseLink bytes.Buffer
+	if err := template.Must(template.New("OutputBaseLink").Parse(c.OutputBaseLink)).Execute(&outputBaseLink, i); err != nil {
+		return err
+	}
+
+	base, err := url.Parse(outputBaseLink.String())
 	if err != nil {
 		return err
 	}
