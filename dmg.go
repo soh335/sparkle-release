@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func _dmg(p string, volname string) (*os.File, error) {
+func _dmg(p string, volname string, codesign string) (*os.File, error) {
 	d, err := ioutil.TempDir("", "sparkle-bundle")
 	if err != nil {
 		return nil, err
@@ -31,5 +31,13 @@ func _dmg(p string, volname string) (*os.File, error) {
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
+
+	if codesign != "" {
+		cmd := exec.Command("codesign", "-s", codesign, dmg)
+		if err := cmd.Run(); err != nil {
+			return nil, err
+		}
+	}
+
 	return os.Open(dmg)
 }

@@ -20,11 +20,12 @@ import (
 )
 
 var (
-	app     = flag.String("app", "", "path of app")
-	config  = flag.String("config", "sparkle.json", "path of sparkle.json")
-	setup   = flag.Bool("setup", false, "initialize config file")
-	appcast = flag.String("appcast", "appcast.xml", "path of appcast.xml")
-	output  = flag.String("output", "latest.dmg", "path of output")
+	app      = flag.String("app", "", "path of app")
+	config   = flag.String("config", "sparkle.json", "path of sparkle.json")
+	setup    = flag.Bool("setup", false, "initialize config file")
+	appcast  = flag.String("appcast", "appcast.xml", "path of appcast.xml")
+	output   = flag.String("output", "latest.dmg", "path of output")
+	codesign = flag.String("codesign", "", "code sign identifier")
 )
 
 const tmpl = `<?xml version="1.0" encoding="utf-8"?>
@@ -130,7 +131,7 @@ func _main() error {
 	case ".zip":
 		tmp, err = zipRecursive(*app)
 	case ".dmg":
-		tmp, err = _dmg(*app, i.BundleName)
+		tmp, err = _dmg(*app, i.BundleName, *codesign)
 	default:
 		return fmt.Errorf("output path should be .zip or .dmg. but got %s", ext)
 	}
